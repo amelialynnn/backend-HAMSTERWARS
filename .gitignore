@@ -1,0 +1,6 @@
+clone/
+node_modules/
+dist/
+build/
+.DS_Store
+firebaseConfig.json

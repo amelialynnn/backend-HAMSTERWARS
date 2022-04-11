@@ -1,0 +1,22 @@
+{
+  "name": "backend-hamsterwars",
+  "version": "1.0.0",
+  "description": "Backend: REST API with Node.js, Express and Firestore",
+  "main": "index.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "keywords": [
+    "express",
+    "REST",
+    "API",
+    "backend",
+    "frontend",
+    "fullstack"
+  ],
+  "author": "Amelia Andreasson",
+  "license": "ISC",
+  "dependencies": {
+    "express": "^4.17.3"
+  }
+}
