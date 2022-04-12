@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "description": "Backend: REST API with Node.js, Express and Firestore",
   "main": "index.js",
+  "type": "module",
   "scripts": {
     "start": "node server.js"
   },
@@ -17,6 +18,9 @@
   "author": "Amelia Andreasson",
   "license": "ISC",
   "dependencies": {
-    "express": "^4.17.3"
+    "cors": "^2.8.5",
+    "express": "^4.17.3",
+    "firebase": "^9.6.10",
+    "joi": "^17.6.0"
   }
 }
