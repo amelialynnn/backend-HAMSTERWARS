@@ -4,10 +4,15 @@
 import express from 'express'
 const router = express.Router()
 
-import { collection, getDocs, addDoc } from 'firebase/firestore'
+import {
+  collection,
+  getDocs,
+  getDoc,
+  addDoc,
+  doc,
+  updateDoc,
+} from 'firebase/firestore'
 import { db } from '../database/firebase.js'
-
-import Joi from 'joi'
 
 // Data hämtas från Firestore!
 
@@ -18,7 +23,7 @@ let hamsters = []
 router.get('/', async (req, res) => {
   const snapshot = await getDocs(colRef)
   snapshot.docs.forEach((docSnapshot) => {
-    hamsters.push({ ...docSnapshot.data() })
+    hamsters.push({ ...docSnapshot.data(), id: docSnapshot.id })
   })
 
   res.status(200).send(hamsters)
@@ -28,7 +33,7 @@ router.get('/', async (req, res) => {
 router.get('/random', async (req, res) => {
   const snapshot = await getDocs(colRef)
   snapshot.docs.forEach((docSnapshot) => {
-    hamsters.push({ ...docSnapshot.data() })
+    hamsters.push({ ...docSnapshot.data(), id: docSnapshot.id })
   })
 
   res.status(200).send(hamsters[Math.floor(Math.random() * hamsters.length)])
@@ -43,7 +48,7 @@ router.get('/:id', async (req, res) => {
   snapshot.docs.forEach((docSnapshot) => {
     hamsters.push({ ...docSnapshot.data(), id: docSnapshot.id })
   })
-  //varför funkar det inte med uid i rättningsscriptet
+
   const matchedHamster = hamsters.find(({ id }) => id === paramId)
 
   if (matchedHamster) {
@@ -52,41 +57,68 @@ router.get('/:id', async (req, res) => {
   } else {
     res.sendStatus(404)
   }
+
+  //ALTERNATIVT
+  /*   const docRef = doc(colRef, req.params.id)
+  const snapshot = await getDoc(docRef)
+  const data = snapshot.data()
+  if (snapshot.exists()) {
+    res.status(200).send(data)
+    return
+  }
+  res.sendStatus(404) */
 })
 
 //POST	/hamsters	Hamster-objekt (utan id)	Id för det nya objekt som skapats i databasen. Ska returneras inuti ett objekt: { id: "..." }.
-
 router.post('/', async (req, res) => {
-  const schema = Joi.object({
-    loves: Joi.string().min(3).max(30).required(),
-    games: Joi.number().min(0).required(),
-    imgName: Joi.string().min(3).max(30).required(),
-    name: Joi.string().min(3).max(30).required(),
-    wins: Joi.number().min(0).required(),
-    favFood: Joi.string().min(3).max(30).required(),
-    age: Joi.number().min(0).required(),
-    defeats: Joi.number().min(0).required(),
-  })
-
-  const dataToValidate = {
-    loves: req.body.loves,
-    games: Number(req.body.games),
-    imgName: req.body.imgName,
-    name: req.body.name,
-    wins: Number(req.body.wins),
-    favFood: req.body.favFood,
-    age: Number(req.body.age),
-    defeats: Number(req.body.defeats),
-  }
-
-  try {
-    const newHamster = await schema.validateAsync(dataToValidate)
+  if (
+    req.body.loves.length === 0 ||
+    req.body.games.length === 0 ||
+    req.body.imgName.length === 0 ||
+    req.body.name.length === 0 ||
+    req.body.wins.length === 0 ||
+    req.body.favFood.length === 0 ||
+    req.body.age.length === 0 ||
+    req.body.defeats.length === 0
+  ) {
+    res.sendStatus(400)
+    return
+  } else {
+    const newHamster = {
+      loves: req.body.loves,
+      games: Number(req.body.games),
+      imgName: req.body.imgName,
+      name: req.body.name,
+      wins: Number(req.body.wins),
+      favFood: req.body.favFood,
+      age: Number(req.body.age),
+      defeats: Number(req.body.defeats),
+    }
     const addedHamster = await addDoc(colRef, newHamster)
     res.status(200).send({ id: addedHamster.id })
-    return
-  } catch (err) {
-    res.status(400).send(err.details[0].message)
   }
+})
+
+//PUT	/hamsters/:id	Body: Ett objekt med ändringar.	Respons: Bara statuskod.
+//Obs! Exempel på ändringsobjekt för PUT: för att sätta antalet vinster till 10 och antalet matcher till 12 ska du använda ändringsobjektet { wins: 10, games: 12 }.
+
+router.put('/:id', async (req, res) => {
+  if (Object.keys(req.body).length === 0) {
+    res.sendStatus(400)
+    return
+  }
+
+  const docRef = doc(colRef, req.params.id)
+  const newData = req.body
+  const snapshot = await getDoc(docRef)
+
+  if (snapshot.exists()) {
+    await updateDoc(docRef, newData)
+    res.sendStatus(200)
+    //res.status(200).send(newData)
+    return
+  }
+  res.sendStatus(404)
 })
 
 export default router

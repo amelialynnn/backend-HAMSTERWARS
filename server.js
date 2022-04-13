@@ -14,6 +14,7 @@ app.use(cors())
 
 // Parse request body
 app.use(express.urlencoded({ extended: true }))
+app.use(express.json())
 
 // Logger - skriv ut information om inkommande request
 app.use((req, res, next) => {
