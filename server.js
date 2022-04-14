@@ -6,6 +6,8 @@ const app = express()
 const PORT = 3000
 
 import hamsters from './routes/hamsters.js'
+import matches from './routes/matches.js'
+import matchWinners from './routes/matchWinners.js'
 // const staticFolder = path.join(__dirname, 'public')
 
 // Middleware
@@ -27,6 +29,8 @@ app.use(express.static('public'))
 
 // Routes
 app.use('/hamsters', hamsters)
+app.use('/matches', matches)
+app.use('/matchWinners', matchWinners)
 
 // Starta server
 app.listen(PORT, () => {
