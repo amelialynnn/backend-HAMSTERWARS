@@ -23,6 +23,7 @@ router.get('/', async (req, res) => {
   })
 
   res.status(200).send(matches)
+  matches = []
 })
 
 //GET	/matches/:id	Body: ingen,	Respons: Matchobjekt med ett specifikt id.
