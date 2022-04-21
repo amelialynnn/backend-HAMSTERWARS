@@ -17,12 +17,14 @@ import { db } from '../database/firebase.js'
 
 // Data hämtas från Firestore!
 
-const colRef = collection(db, 'hamsters')
+const colRefHamsters = collection(db, 'hamsters')
+const colRefMatches = collection(db, 'matches')
 let hamsters = []
+let matches = []
 
 //GET	/hamsters	Body: inget, Respons:	Array med alla hamsterobjekt
 router.get('/', async (req, res) => {
-  const snapshot = await getDocs(colRef)
+  const snapshot = await getDocs(colRefHamsters)
   snapshot.docs.forEach((docSnapshot) => {
     hamsters.push({ ...docSnapshot.data(), id: docSnapshot.id })
   })
@@ -32,7 +34,7 @@ router.get('/', async (req, res) => {
 
 //GET	/hamsters/random	Body: inget, Respons: Ett slumpat hamsterobjekt
 router.get('/random', async (req, res) => {
-  const snapshot = await getDocs(colRef)
+  const snapshot = await getDocs(colRefHamsters)
   snapshot.docs.forEach((docSnapshot) => {
     hamsters.push({ ...docSnapshot.data(), id: docSnapshot.id })
   })
@@ -40,11 +42,69 @@ router.get('/random', async (req, res) => {
   res.status(200).send(hamsters[Math.floor(Math.random() * hamsters.length)])
 })
 
+//GET	/hamsters/cutest	Body: ingen,	Respons: Array med objekt för de hamstrar som vunnit flest matcher.
+router.get('/cutest', async (req, res) => {
+  const matchWinners = []
+  const matchLosers = []
+
+  const snapshot = await getDocs(colRefMatches)
+  snapshot.docs.forEach((docSnapshot) => {
+    matches.push({ ...docSnapshot.data(), id: docSnapshot.id })
+  })
+
+  matches.forEach((element) => matchWinners.push(element.winnerId))
+  matches.forEach((element) => matchLosers.push(element.loserId))
+
+  const matchWinnerOcc = matchWinners.reduce(function (acc, curr) {
+    return acc[curr] ? ++acc[curr] : (acc[curr] = 1), acc
+  }, {})
+
+  const matchLoserOcc = matchLosers.reduce(function (acc, curr) {
+    return acc[curr] ? ++acc[curr] : (acc[curr] = 1), acc
+  }, {})
+
+  console.log('match winners', matchWinnerOcc)
+  console.log('match losers', matchLoserOcc)
+
+  function diffObject(obj1, obj2) {
+    let result = []
+    for (let key in obj1) {
+      // hamstrar som bara vunnit
+      if (!(key in obj2)) {
+        result.push({ [key]: obj1[key] })
+      }
+      // målskillnad (vinst - förlust)
+      if (key in obj2) {
+        let diff = obj1[key] - obj2[key]
+        result.push({ [key]: diff })
+      }
+    }
+
+    const resultSorted = result.sort(
+      (a, b) => Object.values(b) - Object.values(a)
+    )[0]
+
+    console.log(resultSorted)
+    return resultSorted
+  }
+
+  const cutestId = Object.keys(diffObject(matchWinnerOcc, matchLoserOcc))
+
+  // hitta hamsterobjekt och visa på sidan.
+
+  let cutestHamster = []
+  let docRef = doc(colRefHamsters, cutestId.join())
+  let snapshot2 = await getDoc(docRef)
+  cutestHamster.push({ ...snapshot2.data(), id: snapshot2.id })
+
+  res.status(200).send(cutestHamster)
+})
+
 //GET	/hamsters/:id
 // Body: inget
 // Respons:Hamsterobjekt med ett specifikt id. - 404 om inget objekt med detta id finns.
 router.get('/:id', async (req, res) => {
-  const docRef = doc(colRef, req.params.id)
+  const docRef = doc(colRefHamsters, req.params.id)
   const snapshot = await getDoc(docRef)
   const data = snapshot.data()
   if (snapshot.exists()) {
@@ -81,7 +141,7 @@ router.post('/', async (req, res) => {
       age: Number(req.body.age),
       defeats: Number(req.body.defeats),
     }
-    const addedHamster = await addDoc(colRef, newHamster)
+    const addedHamster = await addDoc(colRefHamsters, newHamster)
     res.status(200).send({ id: addedHamster.id })
   }
 })
@@ -93,7 +153,7 @@ router.put('/:id', async (req, res) => {
     return
   }
 
-  const docRef = doc(colRef, req.params.id)
+  const docRef = doc(colRefHamsters, req.params.id)
   const newData = req.body
   const snapshot = await getDoc(docRef)
 
@@ -108,7 +168,7 @@ router.put('/:id', async (req, res) => {
 
 // DELETE	/hamsters/:id	Body: inget, Respons: Bara statuskod
 router.delete('/:id', async (req, res) => {
-  const docRef = doc(colRef, req.params.id)
+  const docRef = doc(colRefHamsters, req.params.id)
   const snapshot = await getDoc(docRef)
 
   if (snapshot.exists()) {

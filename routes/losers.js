@@ -44,7 +44,8 @@ router.get('/', async (req, res) => {
   for (let i = 0; i < bottomFiveId.length; i++) {
     let docRef = doc(colRefHamsters, bottomFiveId[i])
     let snapshot2 = await getDoc(docRef)
-    bottomFiveHamsters.push(snapshot2.data())
+    //bottomFiveHamsters.push(snapshot2.data())
+    bottomFiveHamsters.push({ ...snapshot2.data(), id: snapshot2.id })
   }
 
   console.log(bottomFiveHamsters)

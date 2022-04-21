@@ -44,10 +44,11 @@ router.get('/', async (req, res) => {
   for (let i = 0; i < topFiveId.length; i++) {
     let docRef = doc(colRefHamsters, topFiveId[i])
     let snapshot2 = await getDoc(docRef)
-    topFiveHamsters.push(snapshot2.data())
+    topFiveHamsters.push({ ...snapshot2.data(), id: snapshot2.id })
   }
 
   console.log(topFiveHamsters)
+  // får samma fel även med: JSON.stringify(topFiveHamsters)
 
   res.status(200).send(topFiveHamsters)
 })
