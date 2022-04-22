@@ -7,23 +7,21 @@ import {
   getDoc,
   addDoc,
   doc,
-  updateDoc,
   deleteDoc,
 } from 'firebase/firestore'
 import { db } from '../database/firebase.js'
 
 const colRef = collection(db, 'matches')
-let matches = []
 
 //GET	/matches	Body: ingen, Respons: Array med alla matchobjekt
 router.get('/', async (req, res) => {
+  let matches = []
   const snapshot = await getDocs(colRef)
   snapshot.docs.forEach((docSnapshot) => {
     matches.push({ ...docSnapshot.data(), id: docSnapshot.id })
   })
 
   res.status(200).send(matches)
-  matches = []
 })
 
 //GET	/matches/:id	Body: ingen,	Respons: Matchobjekt med ett specifikt id.

@@ -1,6 +1,3 @@
-// Array med alla hamsterobjekt
-// GET
-
 import express from 'express'
 const router = express.Router()
 
@@ -18,7 +15,6 @@ import {
 import { db } from '../database/firebase.js'
 
 // Data hämtas från Firestore!
-
 const colRefHamsters = collection(db, 'hamsters')
 
 //GET	/hamsters	Body: inget, Respons:	Array med alla hamsterobjekt
@@ -134,7 +130,6 @@ router.put('/:id', async (req, res) => {
   if (snapshot.exists()) {
     await updateDoc(docRef, newData)
     res.sendStatus(200)
-    //res.status(200).send(newData)
     return
   }
   res.sendStatus(404)

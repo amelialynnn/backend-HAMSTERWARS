@@ -19,6 +19,5 @@ if (process.env.PRIVATE_KEY) {
 // Initialize Firebase
 const app = initializeApp(firebaseConfig)
 const db = getFirestore(app)
-//console.log('Database ', db)
 
 export { db }

@@ -5,16 +5,12 @@ import { collection, getDocs } from 'firebase/firestore'
 import { db } from '../database/firebase.js'
 
 const colRef = collection(db, 'matches')
-let matches = []
 
 //GET	/matchWinners/:id	Body: ingen
 // Respons: Array med matchobjekt för alla matcher, som hamstern med id har vunnit.
 // Statuskod 404 om id inte matchar en hamster som vunnit någon match.
 router.get('/:id', async (req, res) => {
-  // ta fram alla matcher
-  // hitta id på hamster - req.params.id
-  // som matchar med winnerId
-  matches = []
+  let matches = []
   const snapshot = await getDocs(colRef)
   snapshot.docs.forEach((docSnapshot) => {
     matches.push({ ...docSnapshot.data(), id: docSnapshot.id })

@@ -5,7 +5,6 @@ import { collection, getDocs, orderBy, query } from 'firebase/firestore'
 import { db } from '../database/firebase.js'
 
 //GET	/winners	Body: ingen, Respons:	En array med hamsterobjekt för de 5 som vunnit flest matcher
-
 router.get('/', async (req, res) => {
   let hamsters = []
   let result = []
