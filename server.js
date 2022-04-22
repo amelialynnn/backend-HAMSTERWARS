@@ -3,7 +3,7 @@ import cors from 'cors'
 // import path from 'path'
 
 const app = express()
-const PORT = 3000
+const PORT = process.env.PORT || 3000
 
 import hamsters from './routes/hamsters.js'
 import matches from './routes/matches.js'

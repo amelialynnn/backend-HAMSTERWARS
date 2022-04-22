@@ -43,17 +43,16 @@ router.get('/random', async (req, res) => {
 })
 
 //GET	/hamsters/cutest	Body: ingen,	Respons: Array med objekt för de hamstrar som vunnit flest matcher.
-router.get('/cutest', async (req, res) => {
-  const matchWinners = []
-  const matchLosers = []
-
+/* router.get('/cutest', async (req, res) => {
   const snapshot = await getDocs(colRefMatches)
   snapshot.docs.forEach((docSnapshot) => {
     matches.push({ ...docSnapshot.data(), id: docSnapshot.id })
   })
 
-  matches.forEach((element) => matchWinners.push(element.winnerId))
-  matches.forEach((element) => matchLosers.push(element.loserId))
+  const matchWinners = []
+  const matchLosers = []
+  matches.forEach((match) => matchWinners.push(match.winnerId))
+  matches.forEach((match) => matchLosers.push(match.loserId))
 
   const matchWinnerOcc = matchWinners.reduce(function (acc, curr) {
     return acc[curr] ? ++acc[curr] : (acc[curr] = 1), acc
@@ -66,7 +65,7 @@ router.get('/cutest', async (req, res) => {
   console.log('match winners', matchWinnerOcc)
   console.log('match losers', matchLoserOcc)
 
-  function diffObject(obj1, obj2) {
+  function cutestResult(obj1, obj2) {
     let result = []
     for (let key in obj1) {
       // hamstrar som bara vunnit
@@ -80,16 +79,28 @@ router.get('/cutest', async (req, res) => {
       }
     }
 
+    // fixa så inte bara första, utan även hantera två på lika målskillnad
     const resultSorted = result.sort(
       (a, b) => Object.values(b) - Object.values(a)
-    )[0]
+    )
 
-    console.log(resultSorted)
-    return resultSorted
+    let topHamter = []
+    let topHamters = []
+
+    for (let i = 0; i < resultSorted.length; i++) {
+      if (
+        Object.values(resultSorted[i]).join() ===
+        Object.values(resultSorted[0]).join()
+      ) {
+        topHamters.push(resultSorted[i])
+      } else {
+        topHamter.push(resultSorted[0])
+      }
+    }
   }
 
-  const cutestId = Object.keys(diffObject(matchWinnerOcc, matchLoserOcc))
-
+  let cutestId = Object.keys(cutestResult(matchWinnerOcc, matchLoserOcc))
+  // behöver då även ändra i anropet till firestore nedan
   // hitta hamsterobjekt och visa på sidan.
 
   let cutestHamster = []
@@ -97,8 +108,8 @@ router.get('/cutest', async (req, res) => {
   let snapshot2 = await getDoc(docRef)
   cutestHamster.push({ ...snapshot2.data(), id: snapshot2.id })
 
-  res.status(200).send(cutestHamster)
-})
+  res.status(200).send(matches)
+}) */
 
 //GET	/hamsters/:id
 // Body: inget
