@@ -1,4 +1,4 @@
-//	Array med alla hamsterobjekt
+// Array med alla hamsterobjekt
 // GET
 
 import express from 'express'
@@ -12,18 +12,18 @@ import {
   doc,
   updateDoc,
   deleteDoc,
+  orderBy,
+  query,
 } from 'firebase/firestore'
 import { db } from '../database/firebase.js'
 
 // Data hämtas från Firestore!
 
 const colRefHamsters = collection(db, 'hamsters')
-const colRefMatches = collection(db, 'matches')
-let hamsters = []
-let matches = []
 
 //GET	/hamsters	Body: inget, Respons:	Array med alla hamsterobjekt
 router.get('/', async (req, res) => {
+  let hamsters = []
   const snapshot = await getDocs(colRefHamsters)
   snapshot.docs.forEach((docSnapshot) => {
     hamsters.push({ ...docSnapshot.data(), id: docSnapshot.id })
@@ -34,6 +34,7 @@ router.get('/', async (req, res) => {
 
 //GET	/hamsters/random	Body: inget, Respons: Ett slumpat hamsterobjekt
 router.get('/random', async (req, res) => {
+  let hamsters = []
   const snapshot = await getDocs(colRefHamsters)
   snapshot.docs.forEach((docSnapshot) => {
     hamsters.push({ ...docSnapshot.data(), id: docSnapshot.id })
@@ -43,73 +44,35 @@ router.get('/random', async (req, res) => {
 })
 
 //GET	/hamsters/cutest	Body: ingen,	Respons: Array med objekt för de hamstrar som vunnit flest matcher.
-/* router.get('/cutest', async (req, res) => {
-  const snapshot = await getDocs(colRefMatches)
+router.get('/cutest', async (req, res) => {
+  let hamsters = []
+  let cutest = []
+
+  const colRefHamsters = query(
+    collection(db, 'hamsters'),
+    orderBy('wins', 'desc')
+  )
+
+  const snapshot = await getDocs(colRefHamsters)
   snapshot.docs.forEach((docSnapshot) => {
-    matches.push({ ...docSnapshot.data(), id: docSnapshot.id })
+    hamsters.push({ ...docSnapshot.data(), id: docSnapshot.id })
   })
 
-  const matchWinners = []
-  const matchLosers = []
-  matches.forEach((match) => matchWinners.push(match.winnerId))
-  matches.forEach((match) => matchLosers.push(match.loserId))
+  let difference = hamsters[0].wins - hamsters[0].defeats
 
-  const matchWinnerOcc = matchWinners.reduce(function (acc, curr) {
-    return acc[curr] ? ++acc[curr] : (acc[curr] = 1), acc
-  }, {})
+  hamsters.forEach((hamster) => {
+    let currentDifference = hamster.wins - hamster.defeats
 
-  const matchLoserOcc = matchLosers.reduce(function (acc, curr) {
-    return acc[curr] ? ++acc[curr] : (acc[curr] = 1), acc
-  }, {})
-
-  console.log('match winners', matchWinnerOcc)
-  console.log('match losers', matchLoserOcc)
-
-  function cutestResult(obj1, obj2) {
-    let result = []
-    for (let key in obj1) {
-      // hamstrar som bara vunnit
-      if (!(key in obj2)) {
-        result.push({ [key]: obj1[key] })
-      }
-      // målskillnad (vinst - förlust)
-      if (key in obj2) {
-        let diff = obj1[key] - obj2[key]
-        result.push({ [key]: diff })
-      }
+    if (currentDifference > difference) {
+      difference = currentDifference
+      cutest = [hamster]
+    } else if (currentDifference === difference) {
+      cutest.push(hamster)
     }
+  })
 
-    // fixa så inte bara första, utan även hantera två på lika målskillnad
-    const resultSorted = result.sort(
-      (a, b) => Object.values(b) - Object.values(a)
-    )
-
-    let topHamter = []
-    let topHamters = []
-
-    for (let i = 0; i < resultSorted.length; i++) {
-      if (
-        Object.values(resultSorted[i]).join() ===
-        Object.values(resultSorted[0]).join()
-      ) {
-        topHamters.push(resultSorted[i])
-      } else {
-        topHamter.push(resultSorted[0])
-      }
-    }
-  }
-
-  let cutestId = Object.keys(cutestResult(matchWinnerOcc, matchLoserOcc))
-  // behöver då även ändra i anropet till firestore nedan
-  // hitta hamsterobjekt och visa på sidan.
-
-  let cutestHamster = []
-  let docRef = doc(colRefHamsters, cutestId.join())
-  let snapshot2 = await getDoc(docRef)
-  cutestHamster.push({ ...snapshot2.data(), id: snapshot2.id })
-
-  res.status(200).send(matches)
-}) */
+  res.status(200).send(cutest)
+})
 
 //GET	/hamsters/:id
 // Body: inget
